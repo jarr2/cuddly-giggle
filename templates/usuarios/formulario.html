@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} · SIS{% endblock %}
+{% block kicker %}Usuarios{% endblock %}
+{% block heading %}{{ titulo }}{% endblock %}
+{% block content %}
+<form class="panel form-grid" method="post">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="errorlist">{{ form.non_field_errors }}</div>
+  {% endif %}
+  {% for field in form %}
+  <div class="field {% if field.name == 'is_active' %}field-check{% endif %}">
+    {% if field.name == 'is_active' %}
+    <label class="check">{{ field }} {{ field.label }}</label>
+    {% else %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% endif %}
+    {% if field.help_text %}<p class="hint">{{ field.help_text }}</p>{% endif %}
+    {{ field.errors }}
+  </div>
+  {% endfor %}
+  <div class="form-actions">
+    <button type="submit" class="button">Guardar</button>
+    <a class="text-button" href="{% url 'usuarios:lista' %}">Volver</a>
+  </div>
+</form>
+{% endblock %}

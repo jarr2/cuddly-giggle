@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.clave }} · SIS{% endblock %}
+{% block kicker %}Folio{% endblock %}
+{% block heading %}{{ ticket.clave }}{% endblock %}
+{% block content %}
+<p class="ayuda">{{ ayuda }}</p>
+<span class="badge badge-lg" data-status="{{ ticket.estatus }}">{{ ticket.get_estatus_display }}</span>
+
+<section class="split">
+  <dl class="facts">
+    <div>
+      <dt>Solicitante</dt>
+      <dd>{{ ticket.creado_por.nombre }}</dd>
+    </div>
+    <div>
+      <dt>Área del solicitante</dt>
+      <dd>{% if ticket.creado_por.area %}{{ ticket.creado_por.area }}{% else %}Sin área{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Área del reporte</dt>
+      <dd>{{ ticket.area }}</dd>
+    </div>
+    <div>
+      <dt>Extensión</dt>
+      <dd>{{ ticket.extension }}</dd>
+    </div>
+    <div>
+      <dt>Emitido</dt>
+      <dd>{{ ticket.fecha_creacion|date:"Y-m-d H:i:s" }}</dd>
+    </div>
+    <div>
+      <dt>Técnico</dt>
+      <dd>{% if ticket.tecnico_asignado %}{{ ticket.tecnico_asignado.nombre }}{% else %}Sin asignar{% endif %}</dd>
+    </div>
+    {% if ticket.fecha_finalizacion %}
+    <div>
+      <dt>Finalizado</dt>
+      <dd>{{ ticket.fecha_finalizacion|date:"Y-m-d H:i:s" }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+  <article class="panel prose">
+    <h2>Descripción</h2>
+    <p>{{ ticket.descripcion }}</p>
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Archivos</h2>
+  {% if ticket.adjuntos.all %}
+  <ul class="files">
+    {% for adjunto in ticket.adjuntos.all %}
+    <li>
+      <a href="{{ adjunto.archivo.url }}">{{ adjunto.nombre_archivo }}</a>
+      <span class="badge" data-status="asignado">{{ adjunto.get_tipo_display }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">Este reporte no tiene archivos.</p>
+  {% endif %}
+  {% if puede_adjuntar %}
+  <form class="stack" method="post" action="{% url 'tickets:adjuntos' ticket.pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="mas-adjuntos">Agregar archivos</label>
+    <input id="mas-adjuntos" class="control" type="file" name="adjuntos" multiple>
+    <button type="submit" class="button button-quiet">Adjuntar</button>
+  </form>
+  {% endif %}
+</section>
+
+{% if puede_asignar %}
+<section class="panel">
+  <h2>Asignar técnico</h2>
+  {% if hay_tecnicos %}
+  <form class="stack" method="post" action="{% url 'tickets:asignar' ticket.pk %}">
+    {% csrf_token %}
+    {% for field in asignar_form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <button type="submit" class="button">Asignar</button>
+  </form>
+  {% else %}
+  <p class="empty">No hay técnicos activos en esta área.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if puede_atender %}
+<section class="panel">
+  <h2>Registrar atención</h2>
+  <form class="stack" method="post" action="{% url 'tickets:atender' ticket.pk %}">
+    {% csrf_token %}
+    {% if atender_form.non_field_errors %}
+    <div class="errorlist">{{ atender_form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in atender_form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <button type="submit" class="button">Guardar atención</button>
+  </form>
+</section>
+{% endif %}
+
+{% if puede_visto_bueno %}
+<section class="panel">
+  <h2>Visto bueno</h2>
+  <p>Si la asistencia quedó resuelta, confirma el visto bueno. El reporte pasa a concluido.</p>
+  <form method="post" action="{% url 'tickets:visto_bueno' ticket.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="button">Dar visto bueno</button>
+  </form>
+</section>
+{% endif %}
+
+<section>
+  <h2>Histórico</h2>
+  <ol class="log">
+    {% for entrada in historial %}
+    <li>
+      <time datetime="{{ entrada.fecha|date:'c' }}">{{ entrada.fecha|date:"Y-m-d H:i:s" }}</time>
+      <p>{{ entrada.atencion_brindada }}</p>
+      {% if entrada.comentario %}<p class="comment">{{ entrada.comentario }}</p>{% endif %}
+      <div class="log-meta">
+        <span class="badge" data-status="{{ entrada.estatus }}">{{ entrada.get_estatus_display }}</span>
+        <small>{{ entrada.creado_por.nombre }}</small>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

@@ -1,0 +1,32 @@
+# MariaDB solo para desarrollo local. No uses estas contraseñas en producción.
+name: renteria_sis
+
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: renteria_sis_db
+    restart: unless-stopped
+    environment:
+      TZ: America/Mexico_City
+      MARIADB_DATABASE: sis
+      MARIADB_USER: sis
+      MARIADB_PASSWORD: sis
+      MARIADB_ROOT_PASSWORD: root
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/01-grants.sql:/docker-entrypoint-initdb.d/01-grants.sql:ro
+      - ./docker/mariadb/02-tz.sh:/docker-entrypoint-initdb.d/02-tz.sh:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 40s
+
+volumes:
+  mariadb_data:

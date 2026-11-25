@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Sin permiso · SIS{% endblock %}
+{% block kicker %}Acceso{% endblock %}
+{% block heading %}Sin permiso{% endblock %}
+{% block content %}
+<p class="empty">Tu rol no puede entrar a esta sección.</p>
+{% endblock %}
+{% block guest %}
+<section class="gate">
+  <div class="gate-copy">
+    <p class="kicker">Acceso</p>
+    <h1>Sin permiso.</h1>
+    <p>Tu rol no puede entrar a esta sección.</p>
+  </div>
+</section>
+{% endblock %}

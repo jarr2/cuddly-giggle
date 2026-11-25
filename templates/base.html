@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SIS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=IBM+Plex+Mono:wght@500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/sis.css' %}">
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+  {% if user.is_authenticated %}
+  <div class="shell">
+    <aside class="spine">
+      <a class="brand" href="{% url 'tickets:lista' %}">
+        <span class="brand-mark">SIS</span>
+        <span class="brand-sub">Mesa de reportes</span>
+      </a>
+      <nav class="nav" aria-label="Principal">
+        <a class="{% if request.resolver_match.namespace == 'tickets' %}is-active{% endif %}" href="{% url 'tickets:lista' %}">Reportes</a>
+        <a class="{% if request.resolver_match.url_name == 'perfil' or request.resolver_match.url_name == 'contrasena' %}is-active{% endif %}" href="{% url 'usuarios:perfil' %}">Mi perfil</a>
+        {% if user.rol == 'admin_sistema' %}
+        <a class="{% if request.resolver_match.namespace == 'usuarios' and request.resolver_match.url_name != 'perfil' and request.resolver_match.url_name != 'contrasena' %}is-active{% endif %}" href="{% url 'usuarios:lista' %}">Usuarios</a>
+        {% endif %}
+        {% if user.is_staff %}
+        <a href="{% url 'admin:index' %}">Administración</a>
+        {% endif %}
+      </nav>
+      <div class="who">
+        <p class="who-name">{{ user.nombre }}</p>
+        <p class="who-role">{{ user.get_rol_display }}</p>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="text-button">Cerrar sesión</button>
+        </form>
+      </div>
+    </aside>
+    <main id="contenido" class="stage">
+      {% if messages %}
+      <ul class="messages" role="status">
+        {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <header class="mast">
+        <p class="kicker">{% block kicker %}SIS{% endblock %}</p>
+        <div class="mast-row">
+          <h1>{% block heading %}Reportes{% endblock %}</h1>
+          {% block actions %}{% endblock %}
+        </div>
+      </header>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  <main id="contenido">
+    {% block guest %}{% endblock %}
+  </main>
+  {% endif %}
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Reportes · SIS{% endblock %}
+{% block kicker %}Mesa de atención{% endblock %}
+{% block heading %}Reportes{% endblock %}
+{% block actions %}
+<a class="button" href="{% url 'tickets:nuevo' %}">Nuevo reporte</a>
+{% endblock %}
+{% block content %}
+<section class="stats" aria-label="Conteo por estatus">
+  {% for item in resumen %}
+  <a class="stat {% if request.GET.estatus == item.valor %}is-on{% endif %}" href="?estatus={{ item.valor }}">
+    <span>{{ item.etiqueta }}</span>
+    <strong>{{ item.total }}</strong>
+  </a>
+  {% endfor %}
+</section>
+
+<form class="filters" method="get">
+  <label>Estatus
+    <select name="estatus" class="control">
+      <option value="">Todos</option>
+      {% for valor, etiqueta in estatuses %}
+      <option value="{{ valor }}" {% if request.GET.estatus == valor %}selected{% endif %}>{{ etiqueta }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Área
+    <select name="area" class="control">
+      <option value="">Todas</option>
+      {% for area in areas %}
+      <option value="{{ area.pk }}" {% if request.GET.area == area.pk|stringformat:"s" %}selected{% endif %}>{{ area }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Técnico
+    <select name="tecnico" class="control">
+      <option value="">Todos</option>
+      {% for tecnico in tecnicos %}
+      <option value="{{ tecnico.pk }}" {% if request.GET.tecnico == tecnico.pk|stringformat:"s" %}selected{% endif %}>{{ tecnico.nombre }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit" class="button button-quiet">Filtrar</button>
+  <a class="text-button" href="{% url 'tickets:lista' %}">Limpiar</a>
+</form>
+
+{% if pagina.paginator.count == 0 %}
+<p class="empty">No hay reportes con este filtro.</p>
+{% else %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Clave</th>
+        <th>Solicitante</th>
+        <th>Área</th>
+        <th>Estatus</th>
+        <th>Técnico</th>
+        <th>Emitido</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in pagina %}
+      <tr>
+        <td><a class="clave" href="{% url 'tickets:detalle' ticket.pk %}">{{ ticket.clave }}</a></td>
+        <td>{{ ticket.creado_por.nombre }}</td>
+        <td>{{ ticket.area.codigo }}-{{ ticket.area.subcodigo }}</td>
+        <td><span class="badge" data-status="{{ ticket.estatus }}">{{ ticket.get_estatus_display }}</span></td>
+        <td>{% if ticket.tecnico_asignado %}{{ ticket.tecnico_asignado.nombre }}{% else %}—{% endif %}</td>
+        <td class="nowrap">{{ ticket.fecha_creacion|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if pagina.has_other_pages %}
+<nav class="pager" aria-label="Páginas">
+  {% if pagina.has_previous %}
+  <a href="?page={{ pagina.previous_page_number }}&estatus={{ request.GET.estatus }}&area={{ request.GET.area }}&tecnico={{ request.GET.tecnico }}">Anterior</a>
+  {% endif %}
+  <span>{{ pagina.number }} / {{ pagina.paginator.num_pages }}</span>
+  {% if pagina.has_next %}
+  <a href="?page={{ pagina.next_page_number }}&estatus={{ request.GET.estatus }}&area={{ request.GET.area }}&tecnico={{ request.GET.tecnico }}">Siguiente</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

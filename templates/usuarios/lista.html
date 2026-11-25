@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Usuarios · SIS{% endblock %}
+{% block kicker %}Administración{% endblock %}
+{% block heading %}Usuarios{% endblock %}
+{% block actions %}
+<a class="button" href="{% url 'usuarios:nuevo' %}">Nuevo usuario</a>
+{% endblock %}
+{% block content %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre</th>
+        <th>Rol</th>
+        <th>Área</th>
+        <th>Extensión</th>
+        <th>Activo</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for persona in usuarios %}
+      <tr>
+        <td>{{ persona.username }}</td>
+        <td>{{ persona.nombre }}</td>
+        <td>{{ persona.get_rol_display }}</td>
+        <td>{% if persona.area %}{{ persona.area.codigo }}-{{ persona.area.subcodigo }}{% else %}—{% endif %}</td>
+        <td>{{ persona.extension|default:"—" }}</td>
+        <td>{% if persona.is_active %}Sí{% else %}No{% endif %}</td>
+        <td class="row-actions">
+          <a href="{% url 'usuarios:editar' persona.pk %}">Editar</a>
+          {% if persona.pk != user.pk %}
+          <form method="post" action="{% url 'usuarios:eliminar' persona.pk %}" onsubmit="return confirm('¿Eliminar este usuario?');">
+            {% csrf_token %}
+            <button type="submit" class="text-button danger">Eliminar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

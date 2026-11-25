@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Entrar · SIS{% endblock %}
+{% block guest %}
+<section class="gate">
+  <div class="gate-copy">
+    <p class="kicker">Sistema de incidencias</p>
+    <h1>La bitácora de cada reporte.</h1>
+    <p>Clave por área, técnico asignado y el historial de la atención, en un solo folio.</p>
+  </div>
+  <form class="panel gate-form" method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% if form.non_field_errors %}
+    <div class="errorlist">{{ form.non_field_errors }}</div>
+    {% endif %}
+    {% for field in form %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% endfor %}
+    <button type="submit" class="button">Ingresar</button>
+    {% if debug %}
+    <p class="hint">Demostración, después de <code>seed_areas</code>: <strong>general</strong>, <strong>tecnico.ss</strong>, <strong>admin.ss</strong> o <strong>admin</strong>. Contraseña <strong>Demo12345</strong>.</p>
+    {% endif %}
+  </form>
+</section>
+{% endblock %}
